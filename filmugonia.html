@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Filmugonia</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: 'Courier New', Courier, monospace;
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+
+        /* Contenuto principale */
+        .main-content {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 2.5rem 2rem;
+        }
+
+        /* Sezione titolo con effetto typewriter (senza cursore) */
+        .title-section {
+    text-align: center;
+    margin: 2rem 0 1.5rem 0;
+}
+
+    .typewriter-h1 {
+    font-size: 4.8rem;
+    font-weight: bold;
+    color: white;
+    font-family: 'Courier New', Courier, monospace;
+    white-space: nowrap;
+    overflow: hidden;
+    width: 0;
+    margin: 0 auto 1rem auto;
+    animation: typingH1 2.5s steps(10) forwards;
+    }
+
+    .typewriter-h3 {
+    font-size: 1.8rem;
+    font-weight: 300;
+    color: white;
+    font-family: 'Courier New', Courier, monospace;
+    max-width: 900px;
+    margin: 0 auto;
+    text-align: center;
+    word-wrap: break-word;
+    opacity: 0;                          /* inizialmente invisibile */
+    animation: fadeInSoft 1s ease-in forwards;
+    animation-delay: 2.5s;               /* parte dopo la fine del titolo */
+    }
+
+    @keyframes typingH1 {
+    from { width: 0; }
+    to { width: 10ch; }
+    }
+ 
+    @keyframes fadeInSoft {
+    from { opacity: 0; }
+    to { opacity: 1; }
+    }
+
+        /* Barra di ricerca */
+        .search-container {
+        display: flex;
+        justify-content: center;
+        margin: 2rem 0 3rem 0;
+        }
+  
+        #searchInput {
+        background: #000;                /* stesso colore dello sfondo */
+        border: none;                    /* nessun bordo rettangolare */
+        color: white;
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 1.1rem;
+        padding: 0.5rem 1rem;
+        width: 100%;
+        max-width: 400px;
+        outline: none;
+        letter-spacing: 1px;
+        text-align: center;
+        transition: all 0.2s;
+        border-bottom: 1px solid transparent; /* solo un accenno visibile al focus */
+        }
+
+        #searchInput:focus {
+        border-bottom: 1px solid #555;   /* linea sottile al focus per indicare interazione */
+        }
+
+        #searchInput::placeholder {
+        color: #333;                      /* placeholder scuro ma leggibile */
+        font-style: italic;
+        }
+
+        /* Catalogo minimal */
+        .genre-section {
+            margin-bottom: 3rem;
+        }
+
+        .genre-title {
+            font-size: 1.8rem;
+            font-weight: normal;
+            margin-bottom: 1rem;
+            padding-left: 10px;
+            border-left: 4px solid white;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .movie-row {
+            display: flex;
+            overflow-x: auto;
+            overflow-y: hidden;
+            gap: 1rem;
+            padding: 0.8rem 0.3rem 1.5rem;
+            scrollbar-width: thin;
+            scrollbar-color: white #222;
+        }
+
+        .movie-row::-webkit-scrollbar {
+            height: 5px;
+        }
+        .movie-row::-webkit-scrollbar-track {
+            background: #111;
+        }
+        .movie-row::-webkit-scrollbar-thumb {
+            background: white;
+            border-radius: 0;
+        }
+
+        .movie-card {
+            flex: 0 0 auto;
+            width: 160px;
+            background: #0a0a0a;
+            border: 1px solid #333;
+            transition: all 0.2s;
+            cursor: pointer;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .movie-card:hover {
+            border-color: white;
+            transform: scale(1.02);
+            background: #111;
+        }
+
+        .movie-poster {
+            width: 100%;
+            height: 200px;
+            background-color: #111;
+            background-size: cover;
+            background-position: center;
+            border-bottom: 1px solid #333;
+        }
+
+        .movie-info {
+            padding: 0.5rem;
+        }
+
+        .movie-title {
+            font-size: 0.9rem;
+            font-weight: normal;
+            color: white;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .movie-year {
+            font-size: 0.75rem;
+            color: #aaa;
+            margin-top: 4px;
+            letter-spacing: 0.5px;
+        }
+
+        /* Messaggio nessun risultato */
+        .no-results {
+            text-align: center;
+            color: #666;
+            font-size: 1.5rem;
+            padding: 3rem;
+            font-family: 'Courier New', Courier, monospace;
+            border: 1px dashed #333;
+        }
+
+        /* Modal player */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.98);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            width: 95%;
+            max-width: 1000px;
+            background: #000;
+            border: 2px solid white;
+            padding: 15px;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: -20px;
+            right: -20px;
+            background: white;
+            color: black;
+            border: none;
+            width: 40px;
+            height: 40px;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .modal-close:hover {
+            background: #ccc;
+        }
+
+        .player-wrapper {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+        }
+
+        .player-wrapper iframe {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .loading {
+            color: white;
+            font-size: 1.5rem;
+            text-align: center;
+            padding: 3rem;
+            letter-spacing: 2px;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 4rem;
+            color: #444;
+            font-size: 0.7rem;
+            border-top: 1px dashed #333;
+            padding-top: 2rem;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        @media (max-width: 900px) {
+            .typewriter-h1 { font-size: 3.5rem; }
+            .typewriter-h3 { font-size: 1.3rem; }
+        }
+        @media (max-width: 600px) {
+            .typewriter-h1 { font-size: 2.2rem; }
+            .typewriter-h3 { font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-content">
+        <div class="title-section">
+            <h1 class="typewriter-h1" id="h1-type">filmugonia</h1>
+            <h3 class="typewriter-h3" id="h3-type">The seventh art. At its finest.</h3>
+        </div>
+
+        <!-- Barra di ricerca -->
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="browse movies">
+        </div>
+
+        <div id="movies-container">
+            <div class="loading">LOAD CATALOGUE</div>
+        </div>
+
+        <footer>
+            FILMUGONIA · ARCHIVE.ORG · PUBLIC DOMAIN 
+        </footer>
+    </div>
+
+    <div id="modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close">&times;</button>
+            <div id="player-container" class="player-wrapper"></div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // MODALE
+            const modal = document.getElementById('modal');
+            const closeBtn = document.querySelector('.modal-close');
+            const playerContainer = document.getElementById('player-container');
+
+            closeBtn.addEventListener('click', () => {
+                modal.style.display = 'none';
+                playerContainer.innerHTML = '';
+            });
+            window.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.style.display = 'none';
+                    playerContainer.innerHTML = '';
+                }
+            });
+
+            function openPlayer(identifier) {
+                const iframe = document.createElement('iframe');
+                iframe.src = `https://archive.org/embed/${identifier}`;
+                iframe.setAttribute('allowfullscreen', 'true');
+                iframe.setAttribute('frameborder', '0');
+                playerContainer.innerHTML = '';
+                playerContainer.appendChild(iframe);
+                modal.style.display = 'flex';
+            }
+
+            // LISTA COMPLETA DEI FILM (inclusi i nuovi)
+            const films = [
+                // Film preesistenti
+                { title: "Steamboat Willie", year: "1928", identifier: "steamboat-willie_1928", genre: "Animation" },
+                { title: "It's a Wonderful Life", year: "1946", identifier: "its-a-wonderful-life-1946_202108", genre: "Drama" },
+                { title: "The Passion of Joan of Arc", year: "1928", identifier: "the-passion-of-joan-of-arc-1928", genre: "Drama" },
+                { title: "Sherlock Jr.", year: "1924", identifier: "sherlock.-jr..-1924.1080p.-blu-ray.x-264-yts.-am", genre: "Comedy" },
+                { title: "Man with a Movie Camera", year: "1929", identifier: "ChelovekskinoapparatomManWithAMovieCamera", genre: "Documentary" },
+                { title: "Metropolis", year: "1927", identifier: "Metropolis1925-ShorterVersion", genre: "Sci-Fi" },
+                { title: "The Kid", year: "1921", identifier: "the-kid-1921_20250723", genre: "Comedy" },
+                { title: "The General", year: "1926", identifier: "the-general-keaton-and-bruckman-1926-high-quality-1080p-t-o-p-swu-fc", genre: "Comedy" },
+                { title: "One Week", year: "1920", identifier: "OneWeek1920", genre: "Comedy" },
+                { title: "All Quiet on the Western Front", year: "1930", identifier: "all-quiet-on-the-western-front-1930_202407", genre: "Drama" },
+                { title: "The Skeleton Dance", year: "1929", identifier: "the-skeleton-dance-1929", genre: "Animation" },
+                { title: "The Black Watch", year: "1929", identifier: "rec-20231215161834", genre: "Adventure" },
+                { title: "Animal Crackers", year: "1930", identifier: "marx_brothers_202101", genre: "Comedy" },
+                { title: "Napoleon", year: "1927", identifier: "napoleon_1929", genre: "Historical" },
+                { title: "Scarface", year: "1932", identifier: "scarface-1932_202109", genre: "Crime" },
+                { title: "The Maltese Falcon", year: "1941", identifier: "the-maltese-falcon-1941-1080p-blu-ray", genre: "Crime" },
+                { title: "Rebecca", year: "1940", identifier: "1940rebecaalfredhitchcock", genre: "Thriller" },
+                { title: "Scarlet Street", year: "1945", identifier: "Scarlet.Street.194517", genre: "Drama" },
+                { title: "The Suspect", year: "1944", identifier: "the-suspect-1944_202509", genre: "Crime" },
+                { title: "The Philadelphia Story", year: "1940", identifier: "the-philadelphia-story", genre: "Comedy" },
+                { title: "Christmas Holiday", year: "1944", identifier: "christmas-holiday-1944", genre: "Drama" },
+                { title: "The Mark of the Whistler", year: "1944", identifier: "the-mark-of-the-whistler-1944_202507", genre: "Crime" },
+                { title: "Passage to Marseille", year: "1940", identifier: "passage-to-marseille-1940", genre: "Adventure" },
+                { title: "Across the Pacific", year: "1942", identifier: "across-the-pacific-1942_202408", genre: "Adventure" },
+                { title: "Shiw5344434", year: "1940s", identifier: "shiw5344434", genre: "Drama" },
+                { title: "Action in the Atlantic", year: "1943", identifier: "action-in-the-atlantic-1943", genre: "War" },
+                { title: "The Big Shot", year: "1942", identifier: "the-big-shot-1942_202408", genre: "Crime" },
+                { title: "The Drive by Night", year: "1940", identifier: "the-drive-by-night", genre: "Crime" },
+                { title: "Queen of the Mob", year: "1940", identifier: "1940-queen-of-the-mob-james-hogan-vo", genre: "Crime" },
+                { title: "The Return of Doctor X", year: "1939", identifier: "the-return-of-doctor-x-1939", genre: "Horror" },
+                { title: "Crime School", year: "1938", identifier: "crime-school-1938-bogart", genre: "Crime" },
+                { title: "Isle of Fury", year: "1936", identifier: "isle.-of-fury-1936-bogart", genre: "Drama" },
+                { title: "The Criminal Code", year: "1931", identifier: "1931thecriminalcode", genre: "Crime" },
+                { title: "Three on a Match", year: "1930", identifier: "three-on-a-match-1930", genre: "Drama" },
+                { title: "Greed", year: "1924", identifier: "1924LesRapacesGreedDeErichVonStroheimFreeDownload", genre: "Drama" },
+                { title: "The Patchwork Girl of Oz", year: "1914", identifier: "the-patchwork-girl-of-oz-1914-silent.-film-noir-drama", genre: "Fantasy" },
+                { title: "Mabel's Strange Predicament", year: "1914", identifier: "charlie-chaplin-.-mabels-strange-predicament-1914-restored-short-silent-film-noir-comedy", genre: "Comedy" },
+                { title: "A Night in the Show", year: "1915", identifier: "charlie-chaplin-.-a-night-in-the-show-1915-classic-short-colourized-bw-mix", genre: "Comedy" },
+                { title: "Nosferatu", year: "1922", identifier: "nosferatu-1922_202504", genre: "Horror" },
+                { title: "The Tramp", year: "1915", identifier: "the-tramp-1915", genre: "Comedy" },
+                { title: "The Cure", year: "1917", identifier: "CC_1917_04_16_TheCure", genre: "Comedy" },
+                { title: "The Pawnshop", year: "1916", identifier: "CC_1916_10_02_ThePawnshop", genre: "Comedy" },
+                { title: "The Floorwalker", year: "1916", identifier: "CC_1916_05_15_TheFloorwalker", genre: "Comedy" },
+                { title: "Kid's Auto Race", year: "1914", identifier: "CC_1914_02_07_KidsAutoRaceAtVenice", genre: "Comedy" },
+                { title: "The Immigrant", year: "1917", identifier: "CC_1917_06_17_TheImmigrant", genre: "Comedy" },
+                { title: "One A.M.", year: "1916", identifier: "CC_1916_08_07_One_A_M", genre: "Comedy" },
+                { title: "The Adventurer", year: "1917", identifier: "CC_1917_10_22_TheAdventurer", genre: "Comedy" },
+                { title: "A Burlesque on Carmen", year: "1915", identifier: "CC_1915_12_18_ABurlesqueOnCarmen", genre: "Comedy" },
+                { title: "The General (alt)", year: "1926", identifier: "TheGeneral", genre: "Comedy" },
+                { title: "The Knockout", year: "1914", identifier: "CC_1914_06_11_TheKnockout", genre: "Comedy" },
+                { title: "Police", year: "1916", identifier: "CC_1916_05_27_Police", genre: "Comedy" },
+                { title: "Easy Street", year: "1917", identifier: "EasyStreet1917", genre: "Comedy" },
+                { title: "Extravagance", year: "1930", identifier: "Extravagance1930", genre: "Drama" },
+                { title: "A Dog's Life", year: "1918", identifier: "silent-a-dogs-life", genre: "Comedy" },
+                { title: "Dough and Dynamite", year: "1914", identifier: "CC_1914_10_26_DoughandDynamite", genre: "Comedy" },
+                { title: "The General (Keaton)", year: "1926", identifier: "The_General_Buster_Keaton", genre: "Comedy" },
+                { title: "Cops", year: "1922", identifier: "Cops1922", genre: "Comedy" },
+                { title: "The Goat", year: "1921", identifier: "TheGoat", genre: "Comedy" },
+                { title: "The Playhouse", year: "1921", identifier: "ThePlayhouse", genre: "Comedy" },
+                
+                // NUOVI FILM (dalla lista)
+                { title: "Hamlet: The Drama of Vengeance", year: "1921", identifier: "hamlet-the-drama-of-vengeance-1921", genre: "Drama" },
+                { title: "The Rise of Catherine the Great", year: "1934", identifier: "The_Rise_of_Catherine_the_Great", genre: "Historical" },
+                { title: "Fiddling Around (Just Mickey)", year: "1930", identifier: "fiddling-around-aka-just-mickey_1930", genre: "Animation" },
+                { title: "Omt44458875", year: "1930s", identifier: "omt44458875", genre: "Documentary" },
+                { title: "Steamboat Bill Jr.", year: "1928", identifier: "steamboat-bill-jr.-reisner-1928-high-quality-1080p-h-2r-np-17ccf-u", genre: "Comedy" },
+                { title: "The Mad Doctor", year: "1933", identifier: "the-mad-doctor-1933", genre: "Animation" },
+                { title: "Mickey's Surprise Party", year: "1939", identifier: "mickeys-surprise-party-1939", genre: "Animation" },
+                { title: "Plane Crazy", year: "1928", identifier: "plane-crazy-1928_202406", genre: "Animation" },
+                { title: "Wild Waves", year: "1929", identifier: "wild-waves_1929", genre: "Animation" },
+                { title: "Frankenstein", year: "1931", identifier: "frankenstein-1931-restored-movie-720p-hd", genre: "Horror" },
+                { title: "Bride of Frankenstein", year: "1935", identifier: "the.-bride.-of.-frankenstein.-1935", genre: "Horror" },
+                { title: "Faust", year: "1926", identifier: "faust.-1926", genre: "Fantasy" },
+                { title: "The Phantom Carriage", year: "1921", identifier: "the-phantom-carriage-1921silent", genre: "Horror" },
+                { title: "The Cabinet of Dr. Caligari", year: "1920", identifier: "DasKabinettdesDoktorCaligariTheCabinetofDrCaligari", genre: "Horror" },
+                { title: "The Ghost Train", year: "1931", identifier: "TheGhostTrain", genre: "Thriller" },
+                { title: "Afgrunden (The Abyss)", year: "1910", identifier: "Afgrunden_1910", genre: "Drama" },
+                { title: "The Unknown", year: "1927", identifier: "the-unknown-1927-full-length", genre: "Horror" },
+                { title: "He Who Gets Slapped", year: "1924", identifier: "he-who-gets-slapped-1924-dvd-mkv-18fps", genre: "Drama" },
+                { title: "Mutiny on the Bounty", year: "1935", identifier: "mutiny.-on.-the.-bounty.-1935", genre: "Adventure" },
+                { title: "Phantom Lady", year: "1944", identifier: "phantom-lady-1944", genre: "Thriller" },
+                { title: "Dishonored Lady", year: "1947", identifier: "dishonored_lady", genre: "Drama" },
+                { title: "Experiment Perilous", year: "1944", identifier: "experiment-perilous-1944-", genre: "Thriller" },
+                { title: "The Son of the Sheik", year: "1926", identifier: "the-son-of-the-sheik-1926", genre: "Adventure" },
+                { title: "The Sheik", year: "1921", identifier: "the-sheik-1921", genre: "Adventure" }
+            ];
+
+            // Raggruppa per genere
+            const genreMap = new Map();
+            films.forEach(film => {
+                if (!genreMap.has(film.genre)) genreMap.set(film.genre, []);
+                genreMap.get(film.genre).push(film);
+            });
+
+            // Ordine personalizzato generi
+            const genreOrder = ['Comedy', 'Animation', 'Drama', 'Horror', 'Sci-Fi', 'Fantasy', 'Adventure', 'Crime', 'Thriller', 'War', 'Historical', 'Documentary'];
+            const sortedGenres = Array.from(genreMap.entries()).sort((a, b) => {
+                const indexA = genreOrder.indexOf(a[0]);
+                const indexB = genreOrder.indexOf(b[0]);
+                if (indexA === -1) return 1;
+                if (indexB === -1) return -1;
+                return indexA - indexB;
+            });
+
+            const container = document.getElementById('movies-container');
+            container.innerHTML = '';
+
+            sortedGenres.forEach(([genre, films]) => {
+                const section = document.createElement('section');
+                section.className = 'genre-section';
+                section.dataset.genre = genre;
+                
+                const title = document.createElement('h2');
+                title.className = 'genre-title';
+                title.textContent = genre.toUpperCase();
+                section.appendChild(title);
+                
+                const row = document.createElement('div');
+                row.className = 'movie-row';
+                
+                films.forEach(film => {
+                    const card = document.createElement('div');
+                    card.className = 'movie-card';
+                    card.dataset.identifier = film.identifier;
+                    card.dataset.title = film.title.toLowerCase();
+                    card.dataset.year = film.year;
+                    
+                    const poster = document.createElement('div');
+                    poster.className = 'movie-poster';
+                    poster.style.backgroundImage = `url('https://archive.org/services/img/${film.identifier}'), url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22150%22 viewBox=%220 0 100 150%22><rect width=%22100%22 height=%22150%22 fill=%22333%22/><text x=%2220%22 y=%2275%22 fill=%22%23666%22 font-family=%22Courier%22 font-size=%2216%22>NO COVER</text></svg>')`;
+                    
+                    const info = document.createElement('div');
+                    info.className = 'movie-info';
+                    
+                    const titleEl = document.createElement('div');
+                    titleEl.className = 'movie-title';
+                    titleEl.textContent = film.title;
+                    
+                    const yearEl = document.createElement('div');
+                    yearEl.className = 'movie-year';
+                    yearEl.textContent = film.year;
+                    
+                    info.appendChild(titleEl);
+                    info.appendChild(yearEl);
+                    card.appendChild(poster);
+                    card.appendChild(info);
+                    
+                    card.addEventListener('click', () => openPlayer(film.identifier));
+                    row.appendChild(card);
+                });
+                
+                section.appendChild(row);
+                container.appendChild(section);
+            });
+
+            // Funzione di ricerca
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', function(e) {
+                const query = e.target.value.trim().toLowerCase();
+                
+                if (query === '') {
+                    document.querySelectorAll('.movie-card').forEach(card => card.style.display = '');
+                    document.querySelectorAll('.genre-section').forEach(section => section.style.display = '');
+                    return;
+                }
+
+                const sections = document.querySelectorAll('.genre-section');
+                sections.forEach(section => {
+                    const cards = section.querySelectorAll('.movie-card');
+                    let visibleCount = 0;
+                    cards.forEach(card => {
+                        const title = card.dataset.title;
+                        if (title.includes(query)) {
+                            card.style.display = '';
+                            visibleCount++;
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                    if (visibleCount === 0) {
+                        section.style.display = 'none';
+                    } else {
+                        section.style.display = '';
+                    }
+                });
+            });
+
+        })();
+    </script>
+</body>
+</html>
